@@ -251,6 +251,29 @@
         }
     }
 
+async function getArray() {
+  try {
+    const res = await fetch('http://localhost:3000/uploadedFiles', { method: 'GET' });
+
+    if (!res.ok) {
+      throw new Error(`HTTP error! Status: ${res.status}`);
+    }
+
+    const dataString = await res.text();
+    console.log(dataString); // Log the raw response
+
+    try {
+      const data = JSON.parse(dataString);
+      console.log(data);
+    } catch (error) {
+      console.error('Error parsing JSON:', error);
+    }
+  } catch (error) {
+    console.error('Error:', error.message);
+  }
+}
+
+getArray();
 
         document.addEventListener('DOMContentLoaded', displayFiles);
     </script>

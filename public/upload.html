@@ -83,22 +83,7 @@
 <script>
   
   const data = [];
-    getArray();
-    async function getArray() {
-      try {
-        const res = await fetch('http://localhost:4200/upload', { method: 'GET' });
-        
-        if (!res.ok) {
-          throw new Error(`HTTP error! Status: ${res.status}`);
-        }
-    
-        const dataString = await res.text();
-        const data = JSON.parse(dataString);
-        console.log(data);
-      } catch (error) {
-        console.error('Error:', error.message);
-      }
-    }
+  
     const uploadFilesButton = document.getElementById('uploadFilesButton');
     uploadFilesButton.addEventListener('click',loginWithMetaMask);
     window.userWalletAddress = null
