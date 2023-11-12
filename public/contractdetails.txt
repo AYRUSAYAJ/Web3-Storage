@@ -1,0 +1,105 @@
+CONTRACT_ABI = [
+  {
+    "type": "function",
+    "name": "addFile",
+    "inputs": [
+      {
+        "type": "string",
+        "name": "_fileName",
+        "internalType": "string"
+      },
+      {
+        "type": "string",
+        "name": "_fileCID",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "deleteFile",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "index",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "files",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "string",
+        "name": "fileName",
+        "internalType": "string"
+      },
+      {
+        "type": "string",
+        "name": "fileCID",
+        "internalType": "string"
+      },
+      {
+        "type": "address",
+        "name": "owner",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getFile",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "index",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "string",
+        "name": "",
+        "internalType": "string"
+      },
+      {
+        "type": "string",
+        "name": "",
+        "internalType": "string"
+      },
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getFileCount",
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  }
+];
+CONTRACT_ADDRESS = '0x2Ed228D21d9d43566ed3D5fF5Bc9A2650236710a';

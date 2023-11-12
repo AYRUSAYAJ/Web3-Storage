@@ -1,0 +1,258 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Storage App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+  <div class="action-buttons">
+    <button onclick="location.href='/upload'">Upload File</button>
+    <button onclick="location.href='/delete'">Delete File</button>
+</div>
+    <h2>File Storage</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>File Name</th>
+                <th>File CID</th>
+            </tr>
+        </thead>
+        <tbody id="fileTableBody">
+            <!-- File entries will be dynamically added here -->
+        </tbody>
+    </table>
+
+    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
+    <script type="module">
+
+        async function displayFiles() {
+            const contractABI =[
+  {
+    "type": "function",
+    "name": "addFile",
+    "inputs": [
+      {
+        "type": "string",
+        "name": "_fileName",
+        "internalType": "string"
+      },
+      {
+        "type": "string",
+        "name": "_fileCID",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "deleteFile",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "index",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "files",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "string",
+        "name": "fileName",
+        "internalType": "string"
+      },
+      {
+        "type": "string",
+        "name": "fileCID",
+        "internalType": "string"
+      },
+      {
+        "type": "address",
+        "name": "owner",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getFile",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "index",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "string",
+        "name": "",
+        "internalType": "string"
+      },
+      {
+        "type": "string",
+        "name": "",
+        "internalType": "string"
+      },
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getFileCID",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "index",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "string",
+        "name": "",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getFileCount",
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getFileName",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "index",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "string",
+        "name": "",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getFileOwner",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "index",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  }
+]; 
+            const contractAddress = '0xf99Ca96ECd9678F31caf5d34DFeF1A03A390cF06'; 
+
+            try {
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const web3 = new Web3(window.ethereum);
+            const accounts = await web3.eth.getAccounts();
+            const userWalletAddress = accounts[0];
+
+            const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+            const fileCount = await contract.methods.getFileCount().call();
+            const fileTableBody = document.getElementById('fileTableBody');
+
+            fileTableBody.innerHTML = ''; // Clear existing rows
+
+            for (let i = 0; i < fileCount; i++) {
+                const fileName = await contract.methods.getFileName(i).call();
+                const fileCID = await contract.methods.getFileCID(i).call();
+                const owner = await contract.methods.getFileOwner(i).call();
+
+                if (owner.toLowerCase() === userWalletAddress.toLowerCase()) {
+                    const row = document.createElement('tr');
+
+                    const nameCell = document.createElement('td');
+                    nameCell.textContent = fileName;
+                    row.appendChild(nameCell);
+
+                    const cidCell = document.createElement('td');
+                    cidCell.textContent = fileCID;
+                    row.appendChild(cidCell);
+
+                    fileTableBody.appendChild(row);
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error.message);
+        }
+    }
+
+
+        document.addEventListener('DOMContentLoaded', displayFiles);
+    </script>
+</body>
+</html>
