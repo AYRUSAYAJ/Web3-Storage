@@ -40,7 +40,7 @@ app.post('/upload', upload.array('files[]'), async (req, res) => {
   }
 
   // Send a response indicating that the upload is complete
-  res.redirect('/dashboard');
+  res.redirect('/upload');
 });
 
 app.get('/uploadedFiles', (req, res) => {
@@ -52,6 +52,6 @@ app.get('/delete', (req, res) => {
   res.sendFile(__dirname + '/public/delete.html');
 });
 
-app.listen(4200, () => {
+app.listen(3000, () => {
   console.log('Server started on port 3000');
 });

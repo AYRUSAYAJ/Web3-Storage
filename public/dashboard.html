@@ -251,63 +251,9 @@
             console.error('Error:', error.message);
         }
     }
-var data = [];
-async function getArray() {
-  try {
-    const res = await fetch('/uploadedFiles', { method: 'GET' });
 
-    if (!res.ok) {
-      throw new Error(`HTTP error! Status: ${res.status}`);
-    }
 
-    const dataString = await res.text();
-    console.log(dataString); // Log the raw response
 
-    try {
-      data = JSON.parse(dataString);
-      console.log(data);
-      addFiles(data);
-    } catch (error) {
-      console.error('Error parsing JSON:', error);
-    }
-  } catch (error) {
-    console.error('Error:', error.message);
-  }
-}
-getArray();
-
-async function addFiles(files) {
-    try {
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const web3 = new Web3(window.ethereum);
-        const accounts = await web3.eth.getAccounts();
-        const userWalletAddress = accounts[0];
-        const contract = new web3.eth.Contract(contractABI, contractAddress);
-
-        // Get existing files from localStorage
-        const existingFiles = JSON.parse(localStorage.getItem('existingFiles')) || [];
-
-        for (const file of files) {
-            // Check if the file is not already added
-            if (!existingFiles.includes(file.cid["/"])) {
-                await contract.methods.addFile(file.fileName, file.cid["/"]).send({ from: userWalletAddress });
-                alert(`File added: ${file.fileName}, CID: ${file.cid["/"]}`);
-                // Add the CID to the existing files array
-                existingFiles.push(file.cid["/"]);
-            } else {
-                alert(`File with CID ${file.cid["/"]} already added`);
-            }
-        }
-
-        // Save the updated existing files array to localStorage
-        localStorage.setItem('existingFiles', JSON.stringify(existingFiles));
-
-        // Refresh the view after adding files
-        
-    } catch (error) {
-        console.error('Error:', error.message);
-    }
-}
 
 
         document.addEventListener('DOMContentLoaded', displayFiles);

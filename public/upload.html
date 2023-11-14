@@ -1,108 +1,326 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>File Upload</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f7f7f7;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Display</title>
+    <style>
+        #uploadBtn {
+            display: none; /* Initially hide the upload button */
+        }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
 
-    #upload-form {
-      max-width: 400px;
-      background-color: #ffffff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-    }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
 
-    #upload-form h2 {
-      margin-top: 0;
-    }
+        table, th, td {
+            border: 1px solid black;
+        }
 
-    #file-input {
-      display: none;
-    }
-
-    label {
-      cursor: pointer;
-      display: inline-block;
-      margin-bottom: 10px;
-      padding: 10px 20px;
-      background-color: #007BFF;
-      color: #fff;
-      border-radius: 5px;
-    }
-
-    label:hover {
-      background-color: #0056b3;
-    }
-
-    #file-names {
-      margin: 10px 0;
-    }
-
-    #file-names-input {
-      width: 100%;
-    }
-
-    button {
-      display: block;
-      margin-top: 10px;
-      padding: 10px 20px;
-      background-color: #007BFF;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #0056b3;
-    }
-  </style>
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
 </head>
 <body>
-  <div id="upload-form">
-    <h2>Upload Files</h2>
-    <h2>Welcome to the Upload Page</h2>
-    <form action="/upload" method="post" enctype="multipart/form-data">
-      <input type="file" id="file-input" name="files[]" multiple>
-      <label for="file-input">Choose Files</label>
-      <button type="submit">select</button>
-    </form>
-    <button id="uploadFilesButton">Upload Files</button>
-  </div>
-</body>
-<script>
-  
-  const data = [];
-  
-    const uploadFilesButton = document.getElementById('uploadFilesButton');
-    uploadFilesButton.addEventListener('click',loginWithMetaMask);
-    window.userWalletAddress = null
+    <div>
+        <button onclick="location.href='/dashboard'">Dashboard</button>
+      </div>
+<h1>File Display Table</h1>
+
+<!-- Table to display the fields from the server -->
+<table border="1">
+    <thead>
+        <tr>
+            <th>Field 1</th>
+            <th>Field 2</th>
+        </tr>
+    </thead>
+    <tbody id="fileTableBody">
+        <!-- Table content will be dynamically populated here -->
+    </tbody>
+</table>
+
+<!-- Buttons -->
+<button id="chooseBtn">Choose</button>
+<button id="uploadBtn">Upload</button>
+
+<script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
+<script type="module">
+    window.userWalletAddress = null;
+    const contractABI =[
+  {
+    "type": "function",
+    "name": "addFile",
+    "inputs": [
+      {
+        "type": "string",
+        "name": "_fileName",
+        "internalType": "string"
+      },
+      {
+        "type": "string",
+        "name": "_fileCID",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "deleteFile",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "index",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "files",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "string",
+        "name": "fileName",
+        "internalType": "string"
+      },
+      {
+        "type": "string",
+        "name": "fileCID",
+        "internalType": "string"
+      },
+      {
+        "type": "address",
+        "name": "owner",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getFile",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "index",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "string",
+        "name": "",
+        "internalType": "string"
+      },
+      {
+        "type": "string",
+        "name": "",
+        "internalType": "string"
+      },
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getFileCID",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "index",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "string",
+        "name": "",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getFileCount",
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "uint256",
+        "name": "",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getFileName",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "index",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "string",
+        "name": "",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getFileOwner",
+    "inputs": [
+      {
+        "type": "uint256",
+        "name": "index",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "address",
+        "name": "",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  }
+]; 
+            const contractAddress = '0xf99Ca96ECd9678F31caf5d34DFeF1A03A390cF06'; 
    
     async function loginWithMetaMask() {
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
             .catch((e) => {
-              console.error(e.message)
-              return
+                console.error(e.message)
+                return
             })
-          if (!accounts) { return }
-          window.userWalletAddress = accounts[0];
-          console.log('inside',window.userWalletAddress);
+            if (!accounts) { return }
+            window.userWalletAddress = accounts[0];
+            console.log('inside',window.userWalletAddress);
     }
-  
-    window.addEventListener('DOMContentLoaded', () => {
-      loginWithMetaMask();
-    });
     
+    window.addEventListener('DOMContentLoaded', () => {
+        loginWithMetaMask();
+    });
 
+   
+    var data = [];
+
+    async function getArray() {
+        try {
+            const res = await fetch('/uploadedFiles', { method: 'GET' });
+
+            if (!res.ok) {
+                throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+
+            const dataString = await res.text();
+            console.log(dataString); // Log the raw response
+
+            try {
+                data = JSON.parse(dataString);
+                console.log(data);
+                displayDataInTable(data);
+                document.getElementById('uploadBtn').style.display = 'block';
+            } catch (error) {
+                console.error('Error parsing JSON:', error);
+            }
+        } catch (error) {
+            console.error('Error:', error.message);
+        }
+    }
+
+
+    // Function to display the data in the table
+    // Function to display the data in the table
+    function displayDataInTable(data) {
+        const tableBody = document.getElementById('fileTableBody');
+        tableBody.innerHTML = ''; // Clear existing table content
+
+        data.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${item.fileName}</td><td>${item.cid["/"]}</td>`;
+            tableBody.appendChild(row);
+        });
+    }
+
+
+    // Event listener for the "Choose" button (assuming some logic for file selection)
+    document.getElementById('chooseBtn').addEventListener('click', () => {
+        window.location.href = '/choosefile.html';
+    });
+
+    document.getElementById('uploadBtn').addEventListener('click', () => {
+        addFiles(data);
+    });
+
+
+    async function addFiles(files) {
+    try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const web3 = new Web3(window.ethereum);
+        const accounts = await web3.eth.getAccounts();
+        const userWalletAddress = accounts[0];
+        const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+        // Get existing files from localStorage
+        const existingFiles = JSON.parse(localStorage.getItem('existingFiles')) || [];
+
+        for (const file of files) {
+            // Check if the file is not already added
+            if (!existingFiles.includes(file.cid["/"])) {
+                await contract.methods.addFile(file.fileName, file.cid["/"]).send({ from: userWalletAddress });
+                alert(`File added: ${file.fileName}, CID: ${file.cid["/"]}`);
+                // Add the CID to the existing files array
+                existingFiles.push(file.cid["/"]);
+            } else {
+                alert(`File with CID ${file.cid["/"]} already added`);
+            }
+        }
+
+        // Save the updated existing files array to localStorage
+        localStorage.setItem('existingFiles', JSON.stringify(existingFiles));
+
+        alert('Files added successfully');
+        
+    } catch (error) {
+        console.error('Error:', error.message);
+    }
+}
+
+    getArray();
 </script>
+
+</body>
 </html>
