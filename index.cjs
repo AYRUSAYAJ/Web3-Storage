@@ -18,7 +18,6 @@ app.get('/dashboard', (req, res) => {
 
 app.get('/upload', (req, res) => {
   res.sendFile(__dirname + '/public/upload.html');
-
 });
 
 app.post('/upload', upload.array('files[]'), async (req, res) => {
