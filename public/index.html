@@ -1,73 +1,60 @@
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Web3 Metamask Login</title>
   <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
 </head>
-
 <body class="flex w-screen h-screen justify-center items-center">
   <div class="flex-col space-y-2 justify-center items-center">
-    <button id='loginButton' onclick="" class="mx-auto rounded-md p-2 bg-purple-500 text-white">
-      Login with MetaMask
-    </button>
-    <p id='userWallet' class='text-lg text-gray-600 my-2'></p>
+    <button id='loginButton' class="mx-auto rounded-md p-2 bg-purple-500 text-white">Connect</button>
+    <button id='Dashboard' class="mx-auto rounded-md p-2 bg-purple-500 text-white">Dashboard</button>
+    <p id='userWallet' class="text-gray-500 mt-2"></p>
   </div>
 
   <script>
-    window.userWalletAddress = null
-    const loginButton = document.getElementById('loginButton')
-    const userWallet = document.getElementById('userWallet')
+    window.userWalletAddress = null;
+    const loginButton = document.getElementById('loginButton');
+    const dashboardButton = document.getElementById('Dashboard');
+    const userWallet = document.getElementById('userWallet');
 
-    function toggleButton() {
-      if (!window.ethereum) {
-        loginButton.innerText = 'MetaMask is not installed'
-        loginButton.classList.remove('bg-purple-500', 'text-white')
-        loginButton.classList.add('bg-gray-500', 'text-gray-100', 'cursor-not-allowed')
-        return false
-      }
-
-      loginButton.addEventListener('click', loginWithMetaMask)
+    function updateLoginButton(text, colorClass) {
+      loginButton.innerText = text;
+      loginButton.classList.remove('bg-purple-500', 'text-white');
+      loginButton.classList.add(colorClass, 'cursor-not-allowed');
     }
 
     async function loginWithMetaMask() {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-        .catch((e) => {
-          console.error(e.message)
-          return
-        })
-      if (!accounts) { return }
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        if (!accounts) return;
 
-      window.userWalletAddress = accounts[0]
-      userWallet.innerText = window.userWalletAddress
-      loginButton.innerText = 'Sign out of MetaMask'
-
-      loginButton.removeEventListener('click', loginWithMetaMask)
-      setTimeout(() => {
-        loginButton.addEventListener('click', signOutOfMetaMask)
-      }, 200)
-      window.location.href = '/dashboard';
-      localStorage.setItem('ethereumAccount',userWalletAddress);
-      console.log(localStorage.getItem('ethereumAccount'));
-
+        window.userWalletAddress = accounts[0];
+        //userWallet.innerText = `Connected: ${window.userWalletAddress}`;
+        updateLoginButton('Connected', 'bg-gray-500', 'text-gray-100');
+        localStorage.setItem('ethereumAccount', window.userWalletAddress);
+        console.log(localStorage.getItem('ethereumAccount'));
+      } catch (error) {
+        console.error(error.message);
+      }
     }
 
-    function signOutOfMetaMask() {
-      window.userWalletAddress = null
-      userWallet.innerText = ''
-      loginButton.innerText = 'Sign in with MetaMask'
-
-      loginButton.removeEventListener('click', signOutOfMetaMask)
-      setTimeout(() => {
-        loginButton.addEventListener('click', loginWithMetaMask)
-      }, 200)
-      localStorage.setItem('ethereumAccount',userWalletAddress);
-      console.log(localStorage.getItem('ethereumAccount'));
-    }
+    dashboardButton.addEventListener('click', () => {
+      if (window.userWalletAddress !== null) {
+        window.location.href = '/dashboard';
+      } else {
+        alert('Please Connect to Metamask');
+      }
+    });
 
     window.addEventListener('DOMContentLoaded', () => {
-      toggleButton()
+      if (!window.ethereum) {
+        updateLoginButton('MetaMask is not installed', 'bg-gray-500', 'text-gray-100');
+      } else {
+        loginButton.addEventListener('click', loginWithMetaMask);
+      }
     });
   </script>
 </body>
-
 </html>

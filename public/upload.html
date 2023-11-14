@@ -52,6 +52,8 @@
 <!-- Buttons -->
 <button id="chooseBtn">Choose</button>
 <button id="uploadBtn">Upload</button>
+<button id="clearBtn">Clear</button>
+
 
 <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
 <script type="module">
@@ -318,6 +320,10 @@
         console.error('Error:', error.message);
     }
 }
+    // Event listener for the "Clear" button
+    document.getElementById('clearBtn').addEventListener('click', () => {
+        data = [];
+    });
 
     getArray();
 </script>
