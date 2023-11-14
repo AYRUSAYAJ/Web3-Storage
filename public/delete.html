@@ -1,36 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Array Input Page</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 50px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Display</title>
+  <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 10px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    tr:hover {
+      background-color: #f5f5f5;
+    }
+
+    .selected {
+      background-color: #a0d3ff;
+    }
+
+    .select-button {
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+    }
+
+    .flex-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+    }
+
+    #dashboard {
+      margin-top: 10px;
+      justify-self: end;      
+    }
+
+    #deleteBtn {
+      margin-bottom: 10px;
+      justify-content: end;
+    }
+  </style>
 </head>
-<body>
-  <div>
-    <button onclick="location.href='/dashboard'">Dashboard</button>
+<body class="flex w-screen h-screen justify-center items-center">
+  <div class="header">
+    <button id="dashboard" class="rounded-md p-2 bg-purple-500 text-white">Dashboard</button>
   </div>
-    <label for="arrayInput">Enter an array (comma-separated):</label>
-    <input type="text" id="arrayInput" placeholder="e.g., 1, 2, 3">
+  <div class="flex-col space-y-2 justify-center items-center">
+    <table>
+      <thead>
+        <tr>
+          <th>File Name</th>
+          <th>File CID</th>
+          <th>Select</th>
+        </tr>
+      </thead>
+      <tbody id="fileTableBody">
+        <!-- Table content will be dynamically populated here -->
+      </tbody>
+    </table>
+    <button id="deleteBtn" class="rounded-md p-2 bg-purple-500 text-white">Delete</button>
+  </div>
 
-    <br><br>
-
-    <button id="confirmButton">Confirm</button>
-
-    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
-    <script type="module">
-    
-        async function processArray() {
-            const arrayInput = document.getElementById('arrayInput').value;
-            const filesToDelete = arrayInput.split(',').map(item => item.trim());
-
-            const contractABI =[
+  <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
+  <script type="module">
+    window.selectedIndices = [];
+    window.userWalletAddress = null;
+    const contractABI =[
   {
     "type": "function",
     "name": "addFile",
@@ -191,44 +255,119 @@
     "stateMutability": "view"
   }
 ]; 
-            const contractAddress = '0xf99Ca96ECd9678F31caf5d34DFeF1A03A390cF06'; 
-            try {
-            
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const contractAddress = '0xf99Ca96ECd9678F31caf5d34DFeF1A03A390cF06';
 
-                const web3 = new Web3(window.ethereum);
-                const accounts = await web3.eth.getAccounts();
-                const userWalletAddress = accounts[0];
+    const dashboardButton = document.getElementById('dashboard');
+    const deleteBtn = document.getElementById('deleteBtn');
+    async function displayFiles() {
+      try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const web3 = new Web3(window.ethereum);
+        const accounts = await web3.eth.getAccounts();
+        const userWalletAddress = accounts[0];
 
-                
-                const contract = new web3.eth.Contract(contractABI, contractAddress);
+        const contract = new web3.eth.Contract(contractABI, contractAddress);
 
-                
-                filesToDelete.forEach(index => {
-                    contract.methods.deleteFile(index)
-                        .send({ from: userWalletAddress })
-                        .on('transactionHash', (hash) => {
-                              alert(`Delete transaction sent. Transaction Hash: ${hash}`);
-                        })
-                        .on('confirmation', (confirmationNumber, receipt) => {
-                            if (confirmationNumber === 1) {
-                                alert(`File at index ${index} deleted successfully.`);
-                                window.location.href = '/dashboard';
-                            }
-                        })
-                        .on('error', (error) => {
-                            alert(`Error deleting file at index ${index}: ${error.message}`);
-                        });
-                });
-                
-            } catch (error) {
-                console.error('Error:', error.message);
-            }
+        const fileCount = await contract.methods.getFileCount().call();
+        const fileTableBody = document.getElementById('fileTableBody');
+        const selectedIndicesDisplay = document.getElementById('selectedIndicesDisplay');
+
+        fileTableBody.innerHTML = ''; // Clear existing rows
+        selectedIndices = []; // Clear existing selected indices
+
+        for (let i = 0; i < fileCount; i++) {
+          const fileName = await contract.methods.getFileName(i).call();
+          const fileCID = await contract.methods.getFileCID(i).call();
+          const owner = await contract.methods.getFileOwner(i).call();
+
+          if (owner.toLowerCase() === userWalletAddress.toLowerCase()) {
+            const row = document.createElement('tr');
+
+            const nameCell = document.createElement('td');
+            nameCell.textContent = fileName;
+            row.appendChild(nameCell);
+
+            const cidCell = document.createElement('td');
+            cidCell.textContent = fileCID;
+            row.appendChild(cidCell);
+
+            const selectCell = document.createElement('td');
+            const selectButton = document.createElement('button');
+            selectButton.className = 'select-button';
+            selectButton.textContent = 'Select';
+            selectButton.addEventListener('click', () => {
+              const selectedIndex = i;
+              const selectedRow = row; // The row associated with the selected button
+
+              if (selectedIndices.includes(selectedIndex)) {
+                // Deselecting
+                const indexToRemove = selectedIndices.indexOf(selectedIndex);
+                selectedIndices.splice(indexToRemove, 1);
+                selectedRow.classList.remove('selected');
+              } else {
+                // Selecting
+                selectedIndices.push(selectedIndex);
+                selectedRow.classList.add('selected');
+              }
+
+              selectedIndicesDisplay.textContent = `Selected Indices: ${selectedIndices.join(', ')}`;
+            });
+            selectCell.appendChild(selectButton);
+            row.appendChild(selectCell);
+
+            fileTableBody.appendChild(row);
+          }
         }
+      } catch (error) {
+        console.error('Error:', error.message);
+      }
+    }
 
-        document.getElementById('confirmButton').addEventListener('click', processArray);
+    displayFiles();
 
-    </script>
+   async function deleteFiles() {
+        const filesToDelete = selectedIndices;
+    try {
+            
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
 
+            const web3 = new Web3(window.ethereum);
+            const accounts = await web3.eth.getAccounts();
+            const userWalletAddress = accounts[0];
+
+            
+            const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+            
+            filesToDelete.forEach(index => {
+                contract.methods.deleteFile(index)
+                    .send({ from: userWalletAddress })
+                    .on('transactionHash', (hash) => {
+                          alert(`Delete transaction sent. Transaction Hash: ${hash}`);
+                    })
+                    .on('confirmation', (confirmationNumber, receipt) => {
+                        if (confirmationNumber === 1) {
+                            alert(`File at index ${index} deleted successfully.`);
+                            displayFiles();
+                        }
+                    })
+                    .on('error', (error) => {
+                        alert(`Error deleting file at index ${index}: ${error.message}`);
+                    });
+            });
+          
+            
+        } catch (error) {
+            console.error('Error:', error.message);
+        }
+    }
+
+    deleteBtn.addEventListener('click', deleteFiles);
+    dashboardButton.addEventListener('click', () => {
+        window.location.href = '/dashboard';
+    });
+
+
+  </script>
 </body>
 </html>

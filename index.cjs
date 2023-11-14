@@ -46,6 +46,7 @@ app.post('/upload', upload.array('files[]'), async (req, res) => {
 app.get('/uploadedFiles', (req, res) => {
   // Respond with the updated uploadedFiles array
   res.json(uploadedFiles);
+  uploadedFiles = [];
 });
 
 app.get('/delete', (req, res) => {
